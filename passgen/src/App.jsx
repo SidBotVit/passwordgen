@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 function PasswordGenerator() {
   const [password, setPassword] = useState('');
@@ -7,7 +7,8 @@ function PasswordGenerator() {
   const [charAllowed, setCharAllowed] = useState(true);
   const passwordRef = useRef();
 
-  const generatePassword = () => {
+  // Memoized password generator function
+  const generatePassword = useCallback(() => {
     const numbers = '0123456789';
     const chars = '!@#$%^&*()_+{}[]|:;<>,.?/~`';
     const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -23,8 +24,14 @@ function PasswordGenerator() {
     }
 
     setPassword(generatedPassword);
-  };
+  }, [length, numberAllowed, charAllowed]);
 
+  // Automatically generate a password whenever settings change
+  useEffect(() => {
+    generatePassword();
+  }, [generatePassword]);
+
+  // Copy to clipboard function
   const copyPasswordToClipboard = () => {
     if (password) {
       navigator.clipboard.writeText(password);
@@ -68,7 +75,7 @@ function PasswordGenerator() {
             max={100}
             value={length}
             className="cursor-pointer w-3/4 accent-purple-500"
-            onChange={(e) => setLength(e.target.value)}
+            onChange={(e) => setLength(Number(e.target.value))}
           />
         </div>
 
@@ -78,7 +85,7 @@ function PasswordGenerator() {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              defaultChecked={numberAllowed}
+              checked={numberAllowed}
               id="numberInput"
               className="accent-purple-500"
               onChange={() => setNumberAllowed((prev) => !prev)}
@@ -92,7 +99,7 @@ function PasswordGenerator() {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              defaultChecked={charAllowed}
+              checked={charAllowed}
               id="characterInput"
               className="accent-purple-500"
               onChange={() => setCharAllowed((prev) => !prev)}
@@ -103,14 +110,6 @@ function PasswordGenerator() {
           </div>
         </div>
       </div>
-
-      {/* Generate Button */}
-      <button
-        onClick={generatePassword}
-        className="w-full mt-6 py-2 bg-green-500 text-white font-bold text-lg rounded-lg hover:bg-green-600 transition duration-200"
-      >
-        Generate Password
-      </button>
     </div>
   );
 }
